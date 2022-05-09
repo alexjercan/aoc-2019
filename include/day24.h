@@ -1,6 +1,6 @@
 #ifndef DAY24_H
 #define DAY24_H
 
-const char *day24_solve(const char *input);
+void day24_solve(char *input, char *output);
 
 #endif // DAY24_H

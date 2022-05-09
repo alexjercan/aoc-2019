@@ -1,6 +1,6 @@
 #ifndef DAY04_H
 #define DAY04_H
 
-const char *day04_solve(const char *input);
+void day04_solve(char *input, char *output);
 
 #endif // DAY04_H

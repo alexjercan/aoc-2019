@@ -62,7 +62,7 @@ int main(int argc, char const *argv[]) {
 
     int day = atoi(argv[1]);
 
-    char *content;
+    char *content = NULL;
     int size = read_input(&content);
 
     if (size < 0) {
@@ -70,87 +70,88 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    const char *result = NULL;
+    char output[BUF_SIZE];
+    memset(output, 0, BUF_SIZE);
     switch (day) {
         case 1:
-            result = day01_solve(content);
+            day01_solve(content, output);
             break;
         case 2:
-            result = day02_solve(content);
+            day02_solve(content, output);
             break;
         case 3:
-            result = day03_solve(content);
+            day03_solve(content, output);
             break;
         case 4:
-            result = day04_solve(content);
+            day04_solve(content, output);
             break;
         case 5:
-            result = day05_solve(content);
+            day05_solve(content, output);
             break;
         case 6:
-            result = day06_solve(content);
+            day06_solve(content, output);
             break;
         case 7:
-            result = day07_solve(content);
+            day07_solve(content, output);
             break;
         case 8:
-            result = day08_solve(content);
+            day08_solve(content, output);
             break;
         case 9:
-            result = day09_solve(content);
+            day09_solve(content, output);
             break;
         case 10:
-            result = day10_solve(content);
+            day10_solve(content, output);
             break;
         case 11:
-            result = day11_solve(content);
+            day11_solve(content, output);
             break;
         case 12:
-            result = day12_solve(content);
+            day12_solve(content, output);
             break;
         case 13:
-            result = day13_solve(content);
+            day13_solve(content, output);
             break;
         case 14:
-            result = day14_solve(content);
+            day14_solve(content, output);
             break;
         case 15:
-            result = day15_solve(content);
+            day15_solve(content, output);
             break;
         case 16:
-            result = day16_solve(content);
+            day16_solve(content, output);
             break;
         case 17:
-            result = day17_solve(content);
+            day17_solve(content, output);
             break;
         case 18:
-            result = day18_solve(content);
+            day18_solve(content, output);
             break;
         case 19:
-            result = day19_solve(content);
+            day19_solve(content, output);
             break;
         case 20:
-            result = day20_solve(content);
+            day20_solve(content, output);
             break;
         case 21:
-            result = day21_solve(content);
+            day21_solve(content, output);
             break;
         case 22:
-            result = day22_solve(content);
+            day22_solve(content, output);
             break;
         case 23:
-            result = day23_solve(content);
+            day23_solve(content, output);
             break;
         case 24:
-            result = day24_solve(content);
+            day24_solve(content, output);
             break;
         case 25:
-            result = day25_solve(content);
+            day25_solve(content, output);
             break;
         default:
-            result = "Unknown day";
+            printf("Day %d not found\n", day);
     }
-    printf("%s\n", result);
+    printf("%s\n", output);
 
     free(content);
     return 0;

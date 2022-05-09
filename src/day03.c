@@ -1,5 +1,7 @@
+#include <stdio.h>
+
 #include "../include/day03.h"
 
-const char *day03_solve(const char *input) {
-    return "Day 03 not yet implemented";
+void day03_solve(char *input, char *output) {
+    sprintf(output, "Day03\nPart1: %d\nPart2: %d\n", 0, 0);
 }
