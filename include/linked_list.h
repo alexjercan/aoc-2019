@@ -7,6 +7,7 @@ struct linked_list {
 };
 
 int linked_list_append(struct linked_list **head, void *data);
+void *linked_list_pop_front(struct linked_list **head);
 void linked_list_free(struct linked_list *head);
 
 #endif // LINKED_LIST_H

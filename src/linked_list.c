@@ -24,12 +24,24 @@ int linked_list_append(struct linked_list **head, void *data) {
   return 0;
 }
 
+void *linked_list_pop_front(struct linked_list **head) {
+  if (*head == NULL) {
+    return NULL;
+  }
+
+  struct linked_list *node = *head;
+  *head = node->next;
+  void *data = node->data;
+  free(node);
+
+  return data;
+}
+
 void linked_list_free(struct linked_list *head) {
   struct linked_list *current = head;
 
   while (current != NULL) {
     struct linked_list *next = current->next;
-    free(current->data);
     free(current);
     current = next;
   }

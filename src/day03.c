@@ -144,6 +144,9 @@ static int part1(struct day03_data data) {
     }
   }
 
+  for (struct linked_list *i = inters; i != NULL; i = i->next) {
+    free(i->data);
+  }
   linked_list_free(inters);
   return min_dist;
 }
@@ -188,6 +191,9 @@ static int part2(struct day03_data data) {
     }
   }
 
+  for (struct linked_list *i = dists; i != NULL; i = i->next) {
+    free(i->data);
+  }
   linked_list_free(dists);
   return min_dist;
 }
@@ -197,6 +203,12 @@ void day03_solve(char *input, char *output) {
 
   sprintf(output, "Day03\nPart1: %d\nPart2: %d\n", part1(data), part2(data));
 
+  for (struct linked_list *s1 = data.segments1; s1 != NULL; s1 = s1->next) {
+    free(s1->data);
+  }
   linked_list_free(data.segments1);
+  for (struct linked_list *s2 = data.segments2; s2 != NULL; s2 = s2->next) {
+    free(s2->data);
+  }
   linked_list_free(data.segments2);
 }

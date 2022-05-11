@@ -54,5 +54,9 @@ void day01_solve(char *input, char *output) {
 
   sprintf(output, "Day01\nPart1: %d\nPart2: %d\n", part1(head), part2(head));
 
+  for (struct linked_list *current = head; current != NULL;
+       current = current->next) {
+    free(current->data);
+  }
   linked_list_free(head);
 }

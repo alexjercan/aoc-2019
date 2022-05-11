@@ -43,5 +43,8 @@ static int part2(int *memory) {
 void day05_solve(char *input, char *output) {
   int *memory = parse_input(input);
 
-  sprintf(output, "Day05\nPart1: %d\nPart2: %d\n", part1(memory), part2(memory));
+  sprintf(output, "Day05\nPart1: %d\nPart2: %d\n", part1(memory),
+          part2(memory));
+
+  free(memory);
 }
