@@ -18,9 +18,9 @@ static void parse_input(char *input, struct program *p) {
 }
 
 static int array_get_value(struct array *m, int index) {
-    int value = 0;
-    array_get(m, index, &value);
-    return value;
+  int value = 0;
+  array_get(m, index, &value);
+  return value;
 }
 
 static int part1(struct program *p) {

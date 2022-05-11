@@ -154,7 +154,7 @@ static int get_param(struct program *p, int index) {
 }
 
 static int array_get_value(struct array *m, int index) {
-    int value = 0;
-    array_get(m, index, &value);
-    return value;
+  int value = 0;
+  array_get(m, index, &value);
+  return value;
 }
