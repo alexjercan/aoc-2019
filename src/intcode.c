@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/array.h"
 #include "../include/intcode.h"
+#include "../include/queue.h"
 
 #define OPCODE_ADD 1
 #define OPCODE_MULTIPLY 2
@@ -17,44 +19,132 @@
 #define MODE_POSITION 0
 #define MODE_IMMEDIATE 1
 
-struct program intcode_init(int *memory) {
-  struct program p;
-  memcpy(p.memory, memory, sizeof(int) * MEMORY_SIZE);
-  memset(p.input, 0, sizeof(int) * INPUT_SIZE);
-  memset(p.output, 0, sizeof(int) * OUTPUT_SIZE);
-  p.ip = 0;
-  p.input_index = 0;
-  p.output_index = 0;
+#define OUTPUT_SIZE 128
+#define MEMORY_SIZE 2048
+
+static int get_param(struct program *p, int index);
+static int array_get_value(struct array *m, int index);
+
+struct program *program_new() {
+  struct program *p = malloc(sizeof(struct program));
+  p->ip = 0;
+  p->memory = array_new(MEMORY_SIZE, sizeof(int));
+  p->input = queue_new(sizeof(int));
+  p->output = array_new(OUTPUT_SIZE, sizeof(int));
 
   return p;
 }
 
-struct program intcode_init_input(int *memory, int *input) {
-  struct program p;
-  memcpy(p.memory, memory, sizeof(int) * MEMORY_SIZE);
-  memcpy(p.input, input, sizeof(int) * INPUT_SIZE);
-  memset(p.output, 0, sizeof(int) * OUTPUT_SIZE);
-  p.ip = 0;
-  p.input_index = 0;
-  p.output_index = 0;
+struct program *program_clone(struct program *p) {
+  struct program *clone = program_new();
 
-  return p;
+  clone->ip = p->ip;
+  array_copy(clone->memory, p->memory);
+  queue_copy(clone->input, p->input);
+  array_copy(clone->output, p->output);
+
+  return clone;
 }
 
-static int get_mode(int code, int param_index) {
-  int mode = code / 100;
-  for (int i = 1; i < param_index; i++) {
-    mode /= 10;
+int program_step(struct program *p) {
+  if (p->ip >= array_size(p->memory)) {
+    return 2;
   }
-  return mode % 10;
+
+  int opcode = array_get_value(p->memory, p->ip) % 100;
+
+  switch (opcode) {
+  case OPCODE_ADD: {
+    int dst = array_get_value(p->memory, p->ip + 3);
+    int result = get_param(p, 1) + get_param(p, 2);
+    array_set(p->memory, dst, &result);
+
+    p->ip += 4;
+    return 0;
+  }
+  case OPCODE_MULTIPLY: {
+    int dst = array_get_value(p->memory, p->ip + 3);
+    int result = get_param(p, 1) * get_param(p, 2);
+    array_set(p->memory, dst, &result);
+    p->ip += 4;
+    return 0;
+  }
+  case OPCODE_INPUT: {
+    int input;
+    queue_dequeue(p->input, &input);
+    int dst = array_get_value(p->memory, p->ip + 1);
+    array_set(p->memory, dst, &input);
+    p->ip += 2;
+    return 0;
+  }
+  case OPCODE_OUTPUT: {
+    int output = get_param(p, 1);
+    array_append(p->output, &output);
+    p->ip += 2;
+    return 0;
+  }
+  case OPCODE_JUMP_IF_TRUE: {
+    if (get_param(p, 1) != 0) {
+      p->ip = get_param(p, 2);
+    } else {
+      p->ip += 3;
+    }
+    return 0;
+  }
+
+  case OPCODE_JUMP_IF_FALSE: {
+    if (get_param(p, 1) == 0) {
+      p->ip = get_param(p, 2);
+    } else {
+      p->ip += 3;
+    }
+    return 0;
+  }
+  case OPCODE_LESS_THAN: {
+    int value = 0;
+    if (get_param(p, 1) < get_param(p, 2)) {
+      value = 1;
+    }
+    int dst = array_get_value(p->memory, p->ip + 3);
+    array_set(p->memory, dst, &value);
+    p->ip += 4;
+    return 0;
+  }
+  case OPCODE_EQUALS: {
+    int value = 0;
+    if (get_param(p, 1) == get_param(p, 2)) {
+      value = 1;
+    }
+    int dst = array_get_value(p->memory, p->ip + 3);
+    array_set(p->memory, dst, &value);
+    p->ip += 4;
+    return 0;
+  }
+  case OPCODE_HALT:
+    return 1;
+  default:
+    printf("Unknown opcode: %d\n", opcode);
+    exit(1);
+  }
+}
+
+void program_destroy(struct program *p) {
+  array_destroy(p->memory);
+  queue_destroy(p->input);
+  array_destroy(p->output);
+  free(p);
 }
 
 static int get_param(struct program *p, int index) {
-  int mode = get_mode(p->memory[p->ip], index);
-  int value = p->memory[p->ip + index];
+  int mode = array_get_value(p->memory, p->ip) / 100;
+  for (int i = 1; i < index; i++) {
+    mode /= 10;
+  }
+  mode %= 10;
+  int value = array_get_value(p->memory, p->ip + index);
 
   if (mode == MODE_POSITION) {
-    return p->memory[value];
+    return array_get_value(p->memory, value);
   } else if (mode == MODE_IMMEDIATE) {
     return value;
   } else {
@@ -63,54 +153,8 @@ static int get_param(struct program *p, int index) {
   }
 }
 
-int intcode_step(struct program *p) {
-  int opcode = p->memory[p->ip] % 100;
-
-  switch (opcode) {
-  case OPCODE_ADD:
-    p->memory[p->memory[p->ip + 3]] = get_param(p, 1) + get_param(p, 2);
-    p->ip += 4;
-    return 0;
-  case OPCODE_MULTIPLY:
-    p->memory[p->memory[p->ip + 3]] = get_param(p, 1) * get_param(p, 2);
-    p->ip += 4;
-    return 0;
-  case OPCODE_INPUT:
-    p->memory[p->memory[p->ip + 1]] = p->input[p->input_index++];
-    p->ip += 2;
-    return 0;
-  case OPCODE_OUTPUT:
-    p->output[p->output_index++] = get_param(p, 1);
-    p->ip += 2;
-    return 0;
-  case OPCODE_JUMP_IF_TRUE:
-    if (get_param(p, 1) != 0) {
-      p->ip = get_param(p, 2);
-    } else {
-      p->ip += 3;
-    }
-    return 0;
-  case OPCODE_JUMP_IF_FALSE:
-    if (get_param(p, 1) == 0) {
-      p->ip = get_param(p, 2);
-    } else {
-      p->ip += 3;
-    }
-    return 0;
-  case OPCODE_LESS_THAN:
-    p->memory[p->memory[p->ip + 3]] =
-        (get_param(p, 1) < get_param(p, 2)) ? 1 : 0;
-    p->ip += 4;
-    return 0;
-  case OPCODE_EQUALS:
-    p->memory[p->memory[p->ip + 3]] =
-        (get_param(p, 1) == get_param(p, 2)) ? 1 : 0;
-    p->ip += 4;
-    return 0;
-  case OPCODE_HALT:
-    return 1;
-  default:
-    printf("Unknown opcode: %d\n", opcode);
-    exit(1);
-  }
+static int array_get_value(struct array *m, int index) {
+    int value = 0;
+    array_get(m, index, &value);
+    return value;
 }

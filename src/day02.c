@@ -1,4 +1,5 @@
 #include "../include/day02.h"
+#include "../include/array.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,52 +7,52 @@
 
 #include "../include/intcode.h"
 
-static int *parse_input(char *input) {
-  int *memory = calloc(sizeof(int), MEMORY_SIZE);
-
-  int index = 0;
+static void parse_input(char *input, struct program *p) {
   char *line = strtok(input, ",");
   while (line != NULL) {
-    int value = atoi(line);
-    memory[index] = value;
-    index++;
+    int data = atoi(line);
+
+    array_append(p->memory, &data);
     line = strtok(NULL, ",");
   }
-
-  return memory;
 }
 
-static int part1(int *memory) {
-  struct program p;
-  memcpy(p.memory, memory, sizeof(int) * MEMORY_SIZE);
-  p.ip = 0;
-  p.memory[1] = 12;
-  p.memory[2] = 2;
+static int array_get_value(struct array *m, int index) {
+    int value = 0;
+    array_get(m, index, &value);
+    return value;
+}
 
-  while (intcode_step(&p) == 0)
+static int part1(struct program *p) {
+  int a = 12, b = 2;
+  array_set(p->memory, 1, &a);
+  array_set(p->memory, 2, &b);
+
+  while (program_step(p) == 0)
     ;
 
-  return p.memory[0];
+  return array_get_value(p->memory, 0);
 }
 
-static int exec(int *memory, int noun, int verb) {
-  struct program p;
-  memcpy(p.memory, memory, sizeof(int) * MEMORY_SIZE);
-  p.ip = 0;
-  p.memory[1] = noun;
-  p.memory[2] = verb;
+static int exec(struct program *p, int noun, int verb) {
+  array_set(p->memory, 1, &noun);
+  array_set(p->memory, 2, &verb);
 
-  while (intcode_step(&p) == 0)
+  while (program_step(p) == 0)
     ;
 
-  return p.memory[0];
+  return array_get_value(p->memory, 0);
 }
 
-static int part2(int *memory) {
+static int part2(struct program *p) {
   int noun, verb;
   for (noun = 0; noun < 100; noun++) {
     for (verb = 0; verb < 100; verb++) {
-      if (exec(memory, noun, verb) == 19690720) {
+      struct program *clone = program_clone(p);
+      int result = exec(clone, noun, verb);
+      program_destroy(clone);
+
+      if (result == 19690720) {
         return 100 * noun + verb;
       }
     }
@@ -61,10 +62,13 @@ static int part2(int *memory) {
 }
 
 void day02_solve(char *input, char *output) {
-  int *memory = parse_input(input);
+  struct program *p = program_new();
+  parse_input(input, p);
 
-  sprintf(output, "Day02\nPart1: %d\nPart2: %d\n", part1(memory),
-          part2(memory));
+  struct program *clone = program_clone(p);
 
-  free(memory);
+  sprintf(output, "Day02\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
+
+  program_destroy(p);
+  program_destroy(clone);
 }

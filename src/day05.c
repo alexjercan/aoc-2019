@@ -1,50 +1,56 @@
 #include "../include/day05.h"
+#include "../include/array.h"
 #include "../include/intcode.h"
+#include "../include/queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static int *parse_input(char *input) {
-  int *memory = calloc(sizeof(int), MEMORY_SIZE);
-
-  int index = 0;
+static void parse_input(char *input, struct program *p) {
   char *line = strtok(input, ",");
   while (line != NULL) {
-    int value = atoi(line);
-    memory[index] = value;
-    index++;
+    int data = atoi(line);
+
+    array_append(p->memory, &data);
     line = strtok(NULL, ",");
   }
-
-  return memory;
 }
 
-static int part1(int *memory) {
-  int input[INPUT_SIZE] = {1};
-  struct program p = intcode_init_input(memory, input);
-
-  while (intcode_step(&p) == 0)
-    ;
-
-  return p.output[p.output_index - 1];
+static int array_get_value(struct array *m, int index) {
+    int value = 0;
+    array_get(m, index, &value);
+    return value;
 }
 
-static int part2(int *memory) {
-  int input[INPUT_SIZE] = {5};
-  struct program p = intcode_init_input(memory, input);
+static int part1(struct program *p) {
+  int input = 1;
+  queue_enqueue(p->input, &input);
 
-  while (intcode_step(&p) == 0)
+  while (program_step(p) == 0)
     ;
 
-  return p.output[p.output_index - 1];
+  return array_get_value(p->output, array_size(p->output) - 1);
+}
+
+static int part2(struct program *p) {
+  int input = 5;
+  queue_enqueue(p->input, &input);
+
+  while (program_step(p) == 0)
+    ;
+
+  return array_get_value(p->output, array_size(p->output) - 1);
 }
 
 void day05_solve(char *input, char *output) {
-  int *memory = parse_input(input);
+  struct program *p = program_new();
+  parse_input(input, p);
 
-  sprintf(output, "Day05\nPart1: %d\nPart2: %d\n", part1(memory),
-          part2(memory));
+  struct program *clone = program_clone(p);
 
-  free(memory);
+  sprintf(output, "Day05\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
+
+  program_destroy(p);
+  program_destroy(clone);
 }
