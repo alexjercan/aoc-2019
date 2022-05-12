@@ -27,11 +27,7 @@ static uint64_t graph_node_hash(const void *item, uint64_t seed0,
   return hashmap_sip(node->name, strlen(node->name), seed0, seed1);
 }
 
-static struct hashmap *parse_input(char *input) {
-  struct hashmap *map =
-      hashmap_new(sizeof(struct graph_node), 0, 0, 0, graph_node_hash,
-                  graph_node_cmp, NULL, NULL);
-
+static void parse_input(char *input, struct hashmap *map) {
   char *src = strtok(input, ")");
 
   while (src != NULL) {
@@ -40,22 +36,18 @@ static struct hashmap *parse_input(char *input) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = src});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = array_new(1024, sizeof(char **))});
+      hashmap_set(
+          map, &(struct graph_node){
+                   .name = src, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = src});
     }
     array_append(node->neighbors, &dst);
 
     src = strtok(NULL, ")");
   }
-
-  return map;
 }
 
-static struct hashmap *parse_input_2(char *input) {
-  struct hashmap *map =
-      hashmap_new(sizeof(struct graph_node), 0, 0, 0, graph_node_hash,
-                  graph_node_cmp, NULL, NULL);
-
+static void parse_input_2(char *input, struct hashmap *map) {
   char *src = strtok(input, ")");
 
   while (src != NULL) {
@@ -64,22 +56,24 @@ static struct hashmap *parse_input_2(char *input) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = src});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = array_new(1024, sizeof(char **))});
+      hashmap_set(
+          map, &(struct graph_node){
+                   .name = src, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = src});
     }
     array_append(node->neighbors, &dst);
 
     node = hashmap_get(map, &(struct graph_node){.name = dst});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = dst, .neighbors = array_new(1024, sizeof(char **))});
+      hashmap_set(
+          map, &(struct graph_node){
+                   .name = dst, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = dst});
     }
     array_append(node->neighbors, &src);
 
     src = strtok(NULL, ")");
   }
-
-  return map;
 }
 
 struct queue_element {
@@ -135,7 +129,7 @@ static uint64_t visited_node_hash(const void *item, uint64_t seed0,
 
 static int bfs_path(struct hashmap *map, char *src, char *dst) {
   struct queue *queue = queue_new(sizeof(char *));
-    queue_enqueue(queue, &src);
+  queue_enqueue(queue, &src);
 
   struct hashmap *visited =
       hashmap_new(sizeof(struct visited_node), 0, 0, 0, visited_node_hash,
@@ -154,14 +148,16 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = element});
     if (node != NULL) {
-        for (int i = 0; i < array_size(node->neighbors); i++) {
-            char *neighbor = NULL;
-            array_get(node->neighbors, i, &neighbor);
+      for (int i = 0; i < array_size(node->neighbors); i++) {
+        char *neighbor = NULL;
+        array_get(node->neighbors, i, &neighbor);
 
-        struct visited_node *visited_node = hashmap_get(visited, &(struct visited_node){.name = neighbor});
+        struct visited_node *visited_node =
+            hashmap_get(visited, &(struct visited_node){.name = neighbor});
         if (visited_node == NULL) {
           queue_enqueue(queue, &neighbor);
-          hashmap_set(visited, &(struct visited_node){.name = neighbor, .parent = element});
+          hashmap_set(visited, &(struct visited_node){.name = neighbor,
+                                                      .parent = element});
         }
       }
     }
@@ -186,8 +182,14 @@ static int part2(struct hashmap *map) { return bfs_path(map, "YOU", "SAN"); }
 
 void day06_solve(char *input, char *output) {
   char *input_2 = strdup(input);
-  struct hashmap *map = parse_input(input);
-  struct hashmap *undirected_map = parse_input_2(input_2);
+  struct hashmap *map =
+      hashmap_new(sizeof(struct graph_node), 0, 0, 0, graph_node_hash,
+                  graph_node_cmp, NULL, NULL);
+  parse_input(input, map);
+  struct hashmap *undirected_map =
+      hashmap_new(sizeof(struct graph_node), 0, 0, 0, graph_node_hash,
+                  graph_node_cmp, NULL, NULL);
+  parse_input_2(input_2, undirected_map);
 
   sprintf(output, "Day06\nPart1: %d\nPart2: %d\n", part1(map),
           part2(undirected_map));
