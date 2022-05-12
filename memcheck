@@ -1,0 +1,4 @@
+#!/bin/sh
+
+make main && valgrind ./main $1 < input/day$(printf '%02d' $1).input
+

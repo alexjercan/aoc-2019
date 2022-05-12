@@ -2,6 +2,7 @@
 #include "../include/array.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
+#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,12 +18,6 @@ static void parse_input(char *input, struct program *p) {
   }
 }
 
-static int array_get_value(struct array *m, int index) {
-  int value = 0;
-  array_get(m, index, &value);
-  return value;
-}
-
 static int part1(struct program *p) {
   int input = 1;
   queue_enqueue(p->input, &input);
@@ -30,7 +25,7 @@ static int part1(struct program *p) {
   while (program_step(p) == 0)
     ;
 
-  return array_get_value(p->output, array_size(p->output) - 1);
+  return array_get_int(p->output, array_size(p->output) - 1);
 }
 
 static int part2(struct program *p) {
@@ -40,7 +35,7 @@ static int part2(struct program *p) {
   while (program_step(p) == 0)
     ;
 
-  return array_get_value(p->output, array_size(p->output) - 1);
+  return array_get_int(p->output, array_size(p->output) - 1);
 }
 
 void day05_solve(char *input, char *output) {

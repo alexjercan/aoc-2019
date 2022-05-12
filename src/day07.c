@@ -2,6 +2,7 @@
 #include "../include/array.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
+#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,12 +18,6 @@ static void parse_input(char *input, struct program *p) {
     array_append(p->memory, &data);
     line = strtok(NULL, ",");
   }
-}
-
-static int array_get_value(struct array *m, int index) {
-  int value = 0;
-  array_get(m, index, &value);
-  return value;
 }
 
 static void backtrack_permutations(int k, int n, struct array *permutations,
@@ -66,7 +61,7 @@ static int run_amp(struct program *p, int *input) {
     code = program_step(p);
   }
 
-  *input = array_get_value(p->output, array_size(p->output) - 1);
+  *input = array_get_int(p->output, array_size(p->output) - 1);
 
   return code;
 }
@@ -82,7 +77,7 @@ static int run_amps(struct program *p, struct array *phases) {
     for (int j = 0; j < array_size(phase); j++) {
       struct program *amp = program_new();
       program_copy(amp, p);
-      int phase_value = array_get_value(phase, j);
+      int phase_value = array_get_int(phase, j);
       queue_enqueue(amp->input, &phase_value);
       run_amp(amp, &input);
       program_destroy(amp);
@@ -105,7 +100,7 @@ static int run_amps_loop(struct program *p, struct array *phases) {
 
     struct array *amps = array_new(NUM_AMPS, sizeof(struct program *));
     for (int j = 0; j < NUM_AMPS; j++) {
-      int phase_value = array_get_value(phase, j) + 5;
+      int phase_value = array_get_int(phase, j) + 5;
       struct program *amp = program_new();
       program_copy(amp, p);
       queue_enqueue(amp->input, &phase_value);

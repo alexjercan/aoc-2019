@@ -5,6 +5,7 @@
 #include "../include/array.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
+#include "../include/util.h"
 
 #define OPCODE_ADD 1
 #define OPCODE_MULTIPLY 2
@@ -23,7 +24,6 @@
 #define MEMORY_SIZE 2048
 
 static int get_param(struct program *p, int index);
-static int array_get_value(struct array *m, int index);
 
 struct program *program_new() {
   struct program *p = malloc(sizeof(struct program));
@@ -48,11 +48,11 @@ int program_step(struct program *p) {
     return CODE_TAPE_END;
   }
 
-  int opcode = array_get_value(p->memory, p->ip) % 100;
+  int opcode = array_get_int(p->memory, p->ip) % 100;
 
   switch (opcode) {
   case OPCODE_ADD: {
-    int dst = array_get_value(p->memory, p->ip + 3);
+    int dst = array_get_int(p->memory, p->ip + 3);
     int result = get_param(p, 1) + get_param(p, 2);
     array_set(p->memory, dst, &result);
 
@@ -60,7 +60,7 @@ int program_step(struct program *p) {
     return CODE_OK;
   }
   case OPCODE_MULTIPLY: {
-    int dst = array_get_value(p->memory, p->ip + 3);
+    int dst = array_get_int(p->memory, p->ip + 3);
     int result = get_param(p, 1) * get_param(p, 2);
     array_set(p->memory, dst, &result);
     p->ip += 4;
@@ -70,9 +70,8 @@ int program_step(struct program *p) {
     if (queue_empty(p->input)) {
       return CODE_NO_INPUT;
     }
-    int input;
-    queue_dequeue(p->input, &input);
-    int dst = array_get_value(p->memory, p->ip + 1);
+    int input = queue_dequeue_int(p->input);
+    int dst = array_get_int(p->memory, p->ip + 1);
     array_set(p->memory, dst, &input);
     p->ip += 2;
     return CODE_OK;
@@ -105,7 +104,7 @@ int program_step(struct program *p) {
     if (get_param(p, 1) < get_param(p, 2)) {
       value = 1;
     }
-    int dst = array_get_value(p->memory, p->ip + 3);
+    int dst = array_get_int(p->memory, p->ip + 3);
     array_set(p->memory, dst, &value);
     p->ip += 4;
     return CODE_OK;
@@ -115,7 +114,7 @@ int program_step(struct program *p) {
     if (get_param(p, 1) == get_param(p, 2)) {
       value = 1;
     }
-    int dst = array_get_value(p->memory, p->ip + 3);
+    int dst = array_get_int(p->memory, p->ip + 3);
     array_set(p->memory, dst, &value);
     p->ip += 4;
     return CODE_OK;
@@ -136,25 +135,19 @@ void program_destroy(struct program *p) {
 }
 
 static int get_param(struct program *p, int index) {
-  int mode = array_get_value(p->memory, p->ip) / 100;
+  int mode = array_get_int(p->memory, p->ip) / 100;
   for (int i = 1; i < index; i++) {
     mode /= 10;
   }
   mode %= 10;
-  int value = array_get_value(p->memory, p->ip + index);
+  int value = array_get_int(p->memory, p->ip + index);
 
   if (mode == MODE_POSITION) {
-    return array_get_value(p->memory, value);
+    return array_get_int(p->memory, value);
   } else if (mode == MODE_IMMEDIATE) {
     return value;
   } else {
     fprintf(stderr, "Unknown mode: %d\n", mode);
     exit(1);
   }
-}
-
-static int array_get_value(struct array *m, int index) {
-  int value = 0;
-  array_get(m, index, &value);
-  return value;
 }

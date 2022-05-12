@@ -1,11 +1,11 @@
 #include "../include/day02.h"
 #include "../include/array.h"
+#include "../include/intcode.h"
+#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "../include/intcode.h"
 
 static void parse_input(char *input, struct program *p) {
   char *line = strtok(input, ",");
@@ -17,12 +17,6 @@ static void parse_input(char *input, struct program *p) {
   }
 }
 
-static int array_get_value(struct array *m, int index) {
-  int value = 0;
-  array_get(m, index, &value);
-  return value;
-}
-
 static int part1(struct program *p) {
   int a = 12, b = 2;
   array_set(p->memory, 1, &a);
@@ -31,7 +25,7 @@ static int part1(struct program *p) {
   while (program_step(p) == 0)
     ;
 
-  return array_get_value(p->memory, 0);
+  return array_get_int(p->memory, 0);
 }
 
 static int exec(struct program *p, int noun, int verb) {
@@ -41,7 +35,7 @@ static int exec(struct program *p, int noun, int verb) {
   while (program_step(p) == 0)
     ;
 
-  return array_get_value(p->memory, 0);
+  return array_get_int(p->memory, 0);
 }
 
 static int part2(struct program *p) {
