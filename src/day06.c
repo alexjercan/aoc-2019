@@ -1,6 +1,7 @@
 #include "../include/day06.h"
+#include "../include/array.h"
 #include "../include/hashmap.h"
-#include "../include/linked_list.h"
+#include "../include/queue.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -11,7 +12,7 @@
 
 struct graph_node {
   char *name;
-  struct linked_list *neighbors;
+  struct array *neighbors;
 };
 
 static int graph_node_cmp(const void *a, const void *b, void *udata) {
@@ -39,10 +40,10 @@ static struct hashmap *parse_input(char *input) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = src});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = NULL});
+      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = src});
     }
-    linked_list_append(&node->neighbors, dst);
+    array_append(node->neighbors, &dst);
 
     src = strtok(NULL, ")");
   }
@@ -63,17 +64,17 @@ static struct hashmap *parse_input_2(char *input) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = src});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = NULL});
+      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = src});
     }
-    linked_list_append(&node->neighbors, dst);
+    array_append(node->neighbors, &dst);
 
     node = hashmap_get(map, &(struct graph_node){.name = dst});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = dst, .neighbors = NULL});
+      hashmap_set(map, &(struct graph_node){.name = dst, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get(map, &(struct graph_node){.name = dst});
     }
-    linked_list_append(&node->neighbors, src);
+    array_append(node->neighbors, &src);
 
     src = strtok(NULL, ")");
   }
@@ -87,34 +88,31 @@ struct queue_element {
 };
 
 static int bfs(struct hashmap *map, char *src) {
-  struct linked_list *queue = NULL;
-  struct queue_element *element = malloc(sizeof(struct queue_element));
-  element->key = src;
-  element->level = 0;
-  linked_list_append(&queue, element);
+  struct queue *queue = queue_new(sizeof(struct queue_element));
+  struct queue_element element = {.key = src, .level = 0};
+  queue_enqueue(queue, &element);
 
   int sum = 0;
-  while (queue != NULL) {
-    struct queue_element *element = linked_list_pop_front(&queue);
+  while (!queue_empty(queue)) {
+    struct queue_element element;
+    queue_dequeue(queue, &element);
 
-    sum += element->level;
+    sum += element.level;
     struct graph_node *node =
-        hashmap_get(map, &(struct graph_node){.name = element->key});
+        hashmap_get(map, &(struct graph_node){.name = element.key});
     if (node != NULL) {
-      for (struct linked_list *neighbor = node->neighbors; neighbor != NULL;
-           neighbor = neighbor->next) {
-        struct queue_element *new_element =
-            malloc(sizeof(struct queue_element));
-        new_element->key = neighbor->data;
-        new_element->level = element->level + 1;
+      for (int i = 0; i < array_size(node->neighbors); i++) {
+        char *neighbor = NULL;
+        array_get(node->neighbors, i, &neighbor);
 
-        linked_list_append(&queue, new_element);
+        struct queue_element new_element = {.key = neighbor,
+                                            .level = element.level + 1};
+        queue_enqueue(queue, &new_element);
       }
     }
-
-    free(element);
   }
 
+  queue_destroy(queue);
   return sum;
 }
 
@@ -136,8 +134,8 @@ static uint64_t visited_node_hash(const void *item, uint64_t seed0,
 }
 
 static int bfs_path(struct hashmap *map, char *src, char *dst) {
-  struct linked_list *queue = NULL;
-  linked_list_append(&queue, src);
+  struct queue *queue = queue_new(sizeof(char *));
+    queue_enqueue(queue, &src);
 
   struct hashmap *visited =
       hashmap_new(sizeof(struct visited_node), 0, 0, 0, visited_node_hash,
@@ -145,8 +143,9 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
 
   hashmap_set(visited, &(struct visited_node){.name = src, .parent = NULL});
 
-  while (queue != NULL) {
-    char *element = linked_list_pop_front(&queue);
+  while (!queue_empty(queue)) {
+    char *element = NULL;
+    queue_dequeue(queue, &element);
 
     if (strcmp(element, dst) == 0) {
       break;
@@ -155,22 +154,17 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
     struct graph_node *node =
         hashmap_get(map, &(struct graph_node){.name = element});
     if (node != NULL) {
-      for (struct linked_list *neighbor = node->neighbors; neighbor != NULL;
-           neighbor = neighbor->next) {
+        for (int i = 0; i < array_size(node->neighbors); i++) {
+            char *neighbor = NULL;
+            array_get(node->neighbors, i, &neighbor);
 
-        struct visited_node *visited_node = hashmap_get(
-            visited, &(struct visited_node){.name = neighbor->data});
+        struct visited_node *visited_node = hashmap_get(visited, &(struct visited_node){.name = neighbor});
         if (visited_node == NULL) {
-          linked_list_append(&queue, neighbor->data);
-          hashmap_set(visited, &(struct visited_node){.name = neighbor->data,
-                                                      .parent = element});
+          queue_enqueue(queue, &neighbor);
+          hashmap_set(visited, &(struct visited_node){.name = neighbor, .parent = element});
         }
       }
     }
-  }
-
-  while (queue != NULL) {
-    linked_list_pop_front(&queue);
   }
 
   int path_length = 0;
@@ -182,6 +176,7 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
   }
 
   hashmap_free(visited);
+  queue_destroy(queue);
   return path_length - 2;
 }
 
@@ -201,7 +196,7 @@ void day06_solve(char *input, char *output) {
   void *item = NULL;
   while (hashmap_iter(map, &iter, &item)) {
     struct graph_node *node = item;
-    linked_list_free(node->neighbors);
+    array_destroy(node->neighbors);
   }
   hashmap_free(map);
 
@@ -209,7 +204,7 @@ void day06_solve(char *input, char *output) {
   item = NULL;
   while (hashmap_iter(undirected_map, &iter, &item)) {
     struct graph_node *node = item;
-    linked_list_free(node->neighbors);
+    array_destroy(node->neighbors);
   }
   hashmap_free(undirected_map);
 
