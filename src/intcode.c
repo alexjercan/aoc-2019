@@ -48,7 +48,7 @@ struct program *program_clone(struct program *p) {
 
 int program_step(struct program *p) {
   if (p->ip >= array_size(p->memory)) {
-    return 2;
+    return CODE_TAPE_END;
   }
 
   int opcode = array_get_value(p->memory, p->ip) % 100;
@@ -60,28 +60,31 @@ int program_step(struct program *p) {
     array_set(p->memory, dst, &result);
 
     p->ip += 4;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_MULTIPLY: {
     int dst = array_get_value(p->memory, p->ip + 3);
     int result = get_param(p, 1) * get_param(p, 2);
     array_set(p->memory, dst, &result);
     p->ip += 4;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_INPUT: {
+    if (queue_empty(p->input)) {
+      return CODE_NO_INPUT;
+    }
     int input;
     queue_dequeue(p->input, &input);
     int dst = array_get_value(p->memory, p->ip + 1);
     array_set(p->memory, dst, &input);
     p->ip += 2;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_OUTPUT: {
     int output = get_param(p, 1);
     array_append(p->output, &output);
     p->ip += 2;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_JUMP_IF_TRUE: {
     if (get_param(p, 1) != 0) {
@@ -89,7 +92,7 @@ int program_step(struct program *p) {
     } else {
       p->ip += 3;
     }
-    return 0;
+    return CODE_OK;
   }
 
   case OPCODE_JUMP_IF_FALSE: {
@@ -98,7 +101,7 @@ int program_step(struct program *p) {
     } else {
       p->ip += 3;
     }
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_LESS_THAN: {
     int value = 0;
@@ -108,7 +111,7 @@ int program_step(struct program *p) {
     int dst = array_get_value(p->memory, p->ip + 3);
     array_set(p->memory, dst, &value);
     p->ip += 4;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_EQUALS: {
     int value = 0;
@@ -118,10 +121,10 @@ int program_step(struct program *p) {
     int dst = array_get_value(p->memory, p->ip + 3);
     array_set(p->memory, dst, &value);
     p->ip += 4;
-    return 0;
+    return CODE_OK;
   }
   case OPCODE_HALT:
-    return 1;
+    return CODE_HALT;
   default:
     printf("Unknown opcode: %d\n", opcode);
     exit(1);

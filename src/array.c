@@ -66,6 +66,31 @@ int array_get(struct array *array, int index, void *data) {
 
 int array_size(struct array *array) { return array->size; }
 
+int array_contains(struct array *array, void *data) {
+  for (int i = 0; i < array->size; i++) {
+    if (memcmp(array->data + i * array->element_size, data,
+               array->element_size) == 0) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int array_pop(struct array *array, void *data) {
+  if (array->size == 0) {
+    return -1;
+  }
+
+  array->size--;
+  if (data != NULL) {
+    memcpy(data, array->data + array->size * array->element_size,
+           array->element_size);
+  }
+
+  return 0;
+}
+
 void array_destroy(struct array *array) {
   free(array->data);
   free(array);

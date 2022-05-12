@@ -67,7 +67,9 @@ int queue_dequeue(struct queue *q, void *data) {
     q->tail = NULL;
   }
 
-  memcpy(data, n->data, q->element_size);
+  if (data != NULL) {
+    memcpy(data, n->data, q->element_size);
+  }
 
   free(n->data);
   free(n);
@@ -85,7 +87,7 @@ int queue_peek(struct queue *q, void *data) {
   return 0;
 }
 
-int queue_is_empty(struct queue *q) { return q->head == NULL; }
+int queue_empty(struct queue *q) { return q->head == NULL; }
 
 void queue_destroy(struct queue *q) {
   struct node *n = q->head;
