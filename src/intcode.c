@@ -35,15 +35,12 @@ struct program *program_new() {
   return p;
 }
 
-struct program *program_clone(struct program *p) {
-  struct program *clone = program_new();
+void program_copy(struct program *dst, struct program *src) {
+  dst->ip = src->ip;
 
-  clone->ip = p->ip;
-  array_copy(clone->memory, p->memory);
-  queue_copy(clone->input, p->input);
-  array_copy(clone->output, p->output);
-
-  return clone;
+  array_copy(dst->memory, src->memory);
+  queue_copy(dst->input, src->input);
+  array_copy(dst->output, src->output);
 }
 
 int program_step(struct program *p) {

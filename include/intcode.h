@@ -14,7 +14,7 @@ struct program {
 };
 
 struct program *program_new();
-struct program *program_clone(struct program *p);
+void program_copy(struct program *dst, struct program *src);
 
 int program_step(struct program *p);
 

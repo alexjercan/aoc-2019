@@ -47,7 +47,8 @@ void day05_solve(char *input, char *output) {
   struct program *p = program_new();
   parse_input(input, p);
 
-  struct program *clone = program_clone(p);
+  struct program *clone = program_new();
+  program_copy(clone, p);
 
   sprintf(output, "Day05\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
 

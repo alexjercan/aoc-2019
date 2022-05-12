@@ -48,7 +48,8 @@ static int part2(struct program *p) {
   int noun, verb;
   for (noun = 0; noun < 100; noun++) {
     for (verb = 0; verb < 100; verb++) {
-      struct program *clone = program_clone(p);
+      struct program *clone = program_new();
+      program_copy(clone, p);
       int result = exec(clone, noun, verb);
       program_destroy(clone);
 
@@ -65,7 +66,8 @@ void day02_solve(char *input, char *output) {
   struct program *p = program_new();
   parse_input(input, p);
 
-  struct program *clone = program_clone(p);
+  struct program *clone = program_new();
+  program_copy(clone, p);
 
   sprintf(output, "Day02\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
 

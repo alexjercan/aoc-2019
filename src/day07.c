@@ -80,7 +80,8 @@ static int run_amps(struct program *p, struct array *phases) {
 
     int input = 0;
     for (int j = 0; j < array_size(phase); j++) {
-      struct program *amp = program_clone(p);
+      struct program *amp = program_new();
+      program_copy(amp, p);
       int phase_value = array_get_value(phase, j);
       queue_enqueue(amp->input, &phase_value);
       run_amp(amp, &input);
@@ -105,7 +106,8 @@ static int run_amps_loop(struct program *p, struct array *phases) {
     struct array *amps = array_new(NUM_AMPS, sizeof(struct program *));
     for (int j = 0; j < NUM_AMPS; j++) {
       int phase_value = array_get_value(phase, j) + 5;
-      struct program *amp = program_clone(p);
+      struct program *amp = program_new();
+      program_copy(amp, p);
       queue_enqueue(amp->input, &phase_value);
       array_append(amps, &amp);
     }
@@ -170,7 +172,8 @@ void day07_solve(char *input, char *output) {
   struct program *p = program_new();
   parse_input(input, p);
 
-  struct program *clone = program_clone(p);
+  struct program *clone = program_new();
+  program_copy(clone, p);
 
   sprintf(output, "Day07\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
 
