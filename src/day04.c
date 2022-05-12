@@ -4,21 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct day04_data {
-  int lowest;
-  int highest;
-};
+void parse_input(char *input, int *lowest, int *highest) {
+  char *lowest_str = strtok(input, "-");
+  char *highest_str = strtok(NULL, "\n");
 
-struct day04_data parse_input(char *input) {
-  struct day04_data data;
-
-  char *lowest = strtok(input, "-");
-  char *highest = strtok(NULL, "\n");
-
-  data.lowest = atoi(lowest);
-  data.highest = atoi(highest);
-
-  return data;
+  *lowest = atoi(lowest_str);
+  *highest = atoi(highest_str);
 }
 
 int is_valid_password(int password) {
@@ -67,10 +58,10 @@ int is_valid_password_2(int password) {
   return ok;
 }
 
-int part1(struct day04_data data) {
+int part1(int lowest, int highest) {
   int count = 0;
 
-  for (int p = data.lowest; p <= data.highest; p++) {
+  for (int p = lowest; p <= highest; p++) {
     if (is_valid_password(p)) {
       count++;
     }
@@ -79,10 +70,10 @@ int part1(struct day04_data data) {
   return count;
 }
 
-int part2(struct day04_data data) {
+int part2(int lowest, int highest) {
   int count = 0;
 
-  for (int p = data.lowest; p <= data.highest; p++) {
+  for (int p = lowest; p <= highest; p++) {
     if (is_valid_password_2(p)) {
       count++;
     }
@@ -92,7 +83,9 @@ int part2(struct day04_data data) {
 }
 
 void day04_solve(char *input, char *output) {
-  struct day04_data data = parse_input(input);
+  int lowest, highest;
+  parse_input(input, &lowest, &highest);
 
-  sprintf(output, "Day04\nPart1: %d\nPart2: %d\n", part1(data), part2(data));
+  sprintf(output, "Day04\nPart1: %d\nPart2: %d\n", part1(lowest, highest),
+          part2(lowest, highest));
 }

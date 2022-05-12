@@ -1,5 +1,6 @@
 #include "../include/day03.h"
-#include "../include/linked_list.h"
+#include "../include/array.h"
+#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,63 +16,51 @@ struct segment {
   struct point end;
 };
 
-struct day03_data {
-  struct linked_list *segments1;
-  struct linked_list *segments2;
-};
-
-static struct linked_list *parse_line(char *line) {
-  struct linked_list *segments = NULL;
-
+static void parse_line(char *line, struct array *array) {
   int x = 0;
   int y = 0;
   char *token = strtok(line, ",");
   while (token != NULL) {
-    struct segment *segment = malloc(sizeof(struct segment));
+    struct segment segment;
 
     if (strncmp(token, "R", 1) == 0) {
-      segment->start.x = x;
-      segment->start.y = y;
-      segment->end.x = x + atoi(token + 1);
-      segment->end.y = y;
-      x = segment->end.x;
+      segment.start.x = x;
+      segment.start.y = y;
+      segment.end.x = x + atoi(token + 1);
+      segment.end.y = y;
+      x = segment.end.x;
     } else if (strncmp(token, "L", 1) == 0) {
-      segment->start.x = x;
-      segment->start.y = y;
-      segment->end.x = x - atoi(token + 1);
-      segment->end.y = y;
-      x = segment->end.x;
+      segment.start.x = x;
+      segment.start.y = y;
+      segment.end.x = x - atoi(token + 1);
+      segment.end.y = y;
+      x = segment.end.x;
     } else if (strncmp(token, "U", 1) == 0) {
-      segment->start.x = x;
-      segment->start.y = y;
-      segment->end.x = x;
-      segment->end.y = y + atoi(token + 1);
-      y = segment->end.y;
+      segment.start.x = x;
+      segment.start.y = y;
+      segment.end.x = x;
+      segment.end.y = y + atoi(token + 1);
+      y = segment.end.y;
     } else if (strncmp(token, "D", 1) == 0) {
-      segment->start.x = x;
-      segment->start.y = y;
-      segment->end.x = x;
-      segment->end.y = y - atoi(token + 1);
-      y = segment->end.y;
+      segment.start.x = x;
+      segment.start.y = y;
+      segment.end.x = x;
+      segment.end.y = y - atoi(token + 1);
+      y = segment.end.y;
     }
 
-    linked_list_append(&segments, segment);
+    array_append(array, &segment);
     token = strtok(NULL, ",");
   }
-
-  return segments;
 }
 
-static struct day03_data parse_input(char *input) {
-  struct day03_data data;
-
+static void parse_input(char *input, struct array *segments1,
+                        struct array *segments2) {
   char *line1 = strtok(input, "\n");
   char *line2 = strtok(NULL, "\n");
 
-  data.segments1 = parse_line(line1);
-  data.segments2 = parse_line(line2);
-
-  return data;
+  parse_line(line1, segments1);
+  parse_line(line2, segments2);
 }
 
 static struct point *segment_intersect(struct segment segment1,
@@ -122,93 +111,97 @@ static int segment_length(struct segment segment) {
          abs(segment.end.y - segment.start.y);
 }
 
-static int part1(struct day03_data data) {
-  struct linked_list *inters = NULL;
+static int part1(struct array *segments1, struct array *segments2) {
+  struct array *inters = array_new(1024, sizeof(struct point *));
 
-  for (struct linked_list *s1 = data.segments1; s1 != NULL; s1 = s1->next) {
-    for (struct linked_list *s2 = data.segments2; s2 != NULL; s2 = s2->next) {
-      struct point *point = segment_intersect((*(struct segment *)s1->data),
-                                              *((struct segment *)s2->data));
+  for (int i = 0; i < array_size(segments1); i++) {
+    for (int j = 0; j < array_size(segments2); j++) {
+      struct segment segment1;
+      array_get(segments1, i, &segment1);
+      struct segment segment2;
+      array_get(segments2, j, &segment2);
+
+      struct point *point = segment_intersect(segment1, segment2);
+
       if (point != NULL) {
-        linked_list_append(&inters, point);
+        array_append(inters, &point);
       }
     }
   }
 
   int min_dist = -1;
-  for (struct linked_list *i = inters; i != NULL; i = i->next) {
-    struct point *point = i->data;
+  for (int i = 0; i < array_size(inters); i++) {
+    struct point *point;
+    array_get(inters, i, &point);
     int dist = abs(point->x) + abs(point->y);
     if (min_dist == -1 || dist < min_dist) {
       min_dist = dist;
     }
   }
 
-  for (struct linked_list *i = inters; i != NULL; i = i->next) {
-    free(i->data);
+  for (int i = 0; i < array_size(inters); i++) {
+    struct point *point = NULL;
+    array_get(inters, i, &point);
+    free(point);
   }
-  linked_list_free(inters);
+  array_destroy(inters);
   return min_dist;
 }
 
-static int part2(struct day03_data data) {
-  struct linked_list *dists = NULL;
+static int part2(struct array *segments1, struct array *segments2) {
+  struct array *dists = array_new(1024, sizeof(int));
 
   struct point point1 = {0, 0};
   struct point point2 = {0, 0};
 
   int cost1 = 0;
-  for (struct linked_list *s1 = data.segments1; s1 != NULL; s1 = s1->next) {
-    int cost2 = 0;
+  for (int i = 0; i < array_size(segments1); i++) {
+    struct segment segment1;
+    array_get(segments1, i, &segment1);
 
-    for (struct linked_list *s2 = data.segments2; s2 != NULL; s2 = s2->next) {
-      struct point *point = segment_intersect((*(struct segment *)s1->data),
-                                              *((struct segment *)s2->data));
+    int cost2 = 0;
+    for (int j = 0; j < array_size(segments2); j++) {
+      struct segment segment2;
+      array_get(segments2, j, &segment2);
+
+      struct point *point = segment_intersect(segment1, segment2);
+
       if (point != NULL) {
-        int *dist = malloc(sizeof(int));
-        *dist = cost1 + cost2;
         struct segment seg1 = {.start = point1, .end = *point};
-        *dist += segment_length(seg1);
         struct segment seg2 = {.start = point2, .end = *point};
-        *dist += segment_length(seg2);
-        linked_list_append(&dists, dist);
+        int dist = cost1 + cost2 + segment_length(seg1) + segment_length(seg2);
+        array_append(dists, &dist);
+        free(point);
       }
 
-      free(point);
-      cost2 += segment_length(*((struct segment *)s2->data));
-      point2 = (*(struct segment *)s2->data).end;
+      cost2 += segment_length(segment2);
+      point2 = segment2.end;
     }
 
-    cost1 += segment_length(*((struct segment *)s1->data));
-    point1 = (*(struct segment *)s1->data).end;
+    cost1 += segment_length(segment1);
+    point1 = segment1.end;
   }
 
   int min_dist = -1;
-  for (struct linked_list *i = dists; i != NULL; i = i->next) {
-    int *dist = i->data;
-    if (min_dist == -1 || *dist < min_dist) {
-      min_dist = *dist;
+  for (int i = 0; i < array_size(dists); i++) {
+    int dist = array_get_int(dists, i);
+    if (min_dist == -1 || dist < min_dist) {
+      min_dist = dist;
     }
   }
 
-  for (struct linked_list *i = dists; i != NULL; i = i->next) {
-    free(i->data);
-  }
-  linked_list_free(dists);
+  array_destroy(dists);
   return min_dist;
 }
 
 void day03_solve(char *input, char *output) {
-  struct day03_data data = parse_input(input);
+  struct array *segments1 = array_new(1024, sizeof(struct segment));
+  struct array *segments2 = array_new(1024, sizeof(struct segment));
+  parse_input(input, segments1, segments2);
 
-  sprintf(output, "Day03\nPart1: %d\nPart2: %d\n", part1(data), part2(data));
+  sprintf(output, "Day03\nPart1: %d\nPart2: %d\n", part1(segments1, segments2),
+          part2(segments1, segments2));
 
-  for (struct linked_list *s1 = data.segments1; s1 != NULL; s1 = s1->next) {
-    free(s1->data);
-  }
-  linked_list_free(data.segments1);
-  for (struct linked_list *s2 = data.segments2; s2 != NULL; s2 = s2->next) {
-    free(s2->data);
-  }
-  linked_list_free(data.segments2);
+  array_destroy(segments1);
+  array_destroy(segments2);
 }

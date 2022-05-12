@@ -1,62 +1,49 @@
 #include "../include/day01.h"
-#include "../include/linked_list.h"
+#include "../include/array.h"
+#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static struct linked_list *parse_input(char *input) {
-  struct linked_list *head = NULL;
-
+static void parse_input(char *input, struct array *array) {
   char *line = strtok(input, "\n");
   while (line != NULL) {
     int value = atoi(line);
-    int *data = malloc(sizeof(int));
-    *data = value;
-    linked_list_append(&head, (void *)data);
+    array_append(array, &value);
     line = strtok(NULL, "\n");
   }
-
-  return head;
 }
 
-static int part1(struct linked_list *head) {
+static int part1(struct array *array) {
   int sum = 0;
 
-  struct linked_list *current = head;
-  while (current != NULL) {
-    sum += *((int *)current->data) / 3 - 2;
-    current = current->next;
+  for (int i = 0; i < array_size(array); i++) {
+    sum += array_get_int(array, i) / 3 - 2;
   }
 
   return sum;
 }
 
-static int part2(struct linked_list *head) {
+static int part2(struct array *array) {
   int sum = 0;
 
-  struct linked_list *current = head;
-  while (current != NULL) {
-    int fuel = *((int *)current->data) / 3 - 2;
+  for (int i = 0; i < array_size(array); i++) {
+    int fuel = array_get_int(array, i) / 3 - 2;
     while (fuel > 0) {
       sum += fuel;
       fuel = fuel / 3 - 2;
     }
-
-    current = current->next;
   }
 
   return sum;
 }
 
 void day01_solve(char *input, char *output) {
-  struct linked_list *head = parse_input(input);
+  struct array *array = array_new(1024, sizeof(int));
+  parse_input(input, array);
 
-  sprintf(output, "Day01\nPart1: %d\nPart2: %d\n", part1(head), part2(head));
+  sprintf(output, "Day01\nPart1: %d\nPart2: %d\n", part1(array), part2(array));
 
-  for (struct linked_list *current = head; current != NULL;
-       current = current->next) {
-    free(current->data);
-  }
-  linked_list_free(head);
+  array_destroy(array);
 }
