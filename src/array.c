@@ -44,8 +44,8 @@ int array_append(struct array *array, void *data) {
   return 0;
 }
 
-int array_set(struct array *array, int index, void *data) {
-  if (index < 0 || index >= array->size) {
+int array_set(struct array *array, size_t index, void *data) {
+  if (index >= array->size) {
     return -1;
   }
 
@@ -54,8 +54,8 @@ int array_set(struct array *array, int index, void *data) {
   return 0;
 }
 
-int array_get(struct array *array, int index, void *data) {
-  if (index < 0 || index >= array->size) {
+int array_get(struct array *array, size_t index, void *data) {
+  if (index >= array->size) {
     return -1;
   }
 
@@ -64,8 +64,8 @@ int array_get(struct array *array, int index, void *data) {
   return 0;
 }
 
-void *array_get_ref(struct array *array, int index) {
-  if (index < 0 || index >= array->size) {
+void *array_get_ref(struct array *array, size_t index) {
+  if (index >= array->size) {
     return NULL;
   }
 

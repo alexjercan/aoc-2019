@@ -2,6 +2,7 @@
 #include "../include/array.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
+#include "../include/vector.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,11 +12,14 @@
 
 static void parse_input(char *input, struct program *p) {
   char *line = strtok(input, ",");
+  size_t i = 0;
+
   while (line != NULL) {
     value_t data = atol(line);
 
-    array_append(p->memory, &data);
+    vector_set(p->memory, i, &data);
     line = strtok(NULL, ",");
+    i++;
   }
 }
 

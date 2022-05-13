@@ -12,7 +12,7 @@ typedef unsigned long long int addr_t;
 struct program {
   addr_t ip;
   addr_t relative_base;
-  struct array *memory;
+  struct vector *memory;
   struct queue *input;
   struct array *output;
 };

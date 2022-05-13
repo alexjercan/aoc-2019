@@ -5,6 +5,7 @@
 #include "../include/array.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
+#include "../include/vector.h"
 
 #define OPCODE_ADD 1
 #define OPCODE_MULTIPLY 2
@@ -31,7 +32,8 @@ static addr_t get_addr(struct program *p, int index);
 struct program *program_new() {
   struct program *p = malloc(sizeof(struct program));
   p->ip = 0;
-  p->memory = array_new(MEMORY_SIZE, sizeof(value_t));
+  p->relative_base = 0;
+  p->memory = vector_new(MEMORY_SIZE, sizeof(value_t));
   p->input = queue_new(sizeof(value_t));
   p->output = array_new(OUTPUT_SIZE, sizeof(value_t));
 
@@ -40,18 +42,19 @@ struct program *program_new() {
 
 void program_copy(struct program *dst, struct program *src) {
   dst->ip = src->ip;
+  dst->relative_base = src->relative_base;
 
-  array_copy(dst->memory, src->memory);
+  vector_copy(dst->memory, src->memory);
   queue_copy(dst->input, src->input);
   array_copy(dst->output, src->output);
 }
 
 int program_step(struct program *p) {
-  if (p->ip >= array_size(p->memory)) {
+  if (p->ip >= vector_capacity(p->memory)) {
     return CODE_TAPE_END;
   }
 
-  value_t opcode = *(value_t *)array_get_ref(p->memory, p->ip) % 100;
+  value_t opcode = *(value_t *)vector_get_ref(p->memory, p->ip) % 100;
 
   switch (opcode) {
   case OPCODE_ADD: {
@@ -113,22 +116,22 @@ int program_step(struct program *p) {
 }
 
 void program_destroy(struct program *p) {
-  array_destroy(p->memory);
+  vector_destroy(p->memory);
   queue_destroy(p->input);
   array_destroy(p->output);
   free(p);
 }
 
 static value_t get_param(struct program *p, int index) {
-  return *(addr_t *)array_get_ref(p->memory, get_addr(p, index));
+  return *(addr_t *)vector_get_ref(p->memory, get_addr(p, index));
 }
 
 static void set_param(struct program *p, int index, value_t value) {
-  array_set(p->memory, get_addr(p, index), &value);
+  vector_set(p->memory, get_addr(p, index), &value);
 }
 
 static addr_t get_addr(struct program *p, int index) {
-  value_t mode = *(value_t *)array_get_ref(p->memory, p->ip) / 100;
+  value_t mode = *(value_t *)vector_get_ref(p->memory, p->ip) / 100;
   for (int i = 1; i < index; i++) {
     mode /= 10;
   }
@@ -136,12 +139,12 @@ static addr_t get_addr(struct program *p, int index) {
 
   switch (mode) {
   case MODE_POSITION:
-    return *(addr_t *)array_get_ref(p->memory, p->ip + index);
+    return *(addr_t *)vector_get_ref(p->memory, p->ip + index);
   case MODE_IMMEDIATE:
     return p->ip + index;
   case MODE_RELATIVE:
     return p->relative_base +
-           *(addr_t *)array_get_ref(p->memory, p->ip + index);
+           *(addr_t *)vector_get_ref(p->memory, p->ip + index);
   default:
     fprintf(stderr, "Unknown mode: %lld\n", mode);
     exit(1);
