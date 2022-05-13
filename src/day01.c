@@ -1,6 +1,5 @@
 #include "../include/day01.h"
 #include "../include/array.h"
-#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +18,7 @@ static int part1(struct array *array) {
   int sum = 0;
 
   for (int i = 0; i < array_size(array); i++) {
-    sum += array_get_int(array, i) / 3 - 2;
+    sum += *(int *)array_get_ref(array, i) / 3 - 2;
   }
 
   return sum;
@@ -29,7 +28,7 @@ static int part2(struct array *array) {
   int sum = 0;
 
   for (int i = 0; i < array_size(array); i++) {
-    int fuel = array_get_int(array, i) / 3 - 2;
+    int fuel = *(int *)array_get_ref(array, i) / 3 - 2;
     while (fuel > 0) {
       sum += fuel;
       fuel = fuel / 3 - 2;

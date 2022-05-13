@@ -1,6 +1,5 @@
 #include "../include/day03.h"
 #include "../include/array.h"
-#include "../include/util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,7 +183,7 @@ static int part2(struct array *segments1, struct array *segments2) {
 
   int min_dist = -1;
   for (int i = 0; i < array_size(dists); i++) {
-    int dist = array_get_int(dists, i);
+    int dist = *(int *)array_get_ref(dists, i);
     if (min_dist == -1 || dist < min_dist) {
       min_dist = dist;
     }

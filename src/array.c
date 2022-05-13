@@ -64,6 +64,14 @@ int array_get(struct array *array, int index, void *data) {
   return 0;
 }
 
+void *array_get_ref(struct array *array, int index) {
+  if (index < 0 || index >= array->size) {
+    return NULL;
+  }
+
+  return array->data + index * array->element_size;
+}
+
 int array_size(struct array *array) { return array->size; }
 
 int array_contains(struct array *array, void *data) {
