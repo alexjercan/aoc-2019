@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if ! command -v fswatch &> /dev/null; then
+  echo "$0": Please install fswatch. >&2
+  exit 1
+fi
+
+t="$(make 2>&1)"
+echo "[2J[H$t"
+
+function_name () {
+    awk '
+        {
+            idx = split(FILENAME, parts, ".");
+            jdx = split(parts[1], cs, "");
+            print cs[jdx-1] cs[jdx];
+        }' $1
+}
+
+export -f function_name
+
+fswatch -m poll_monitor -0 **/*.c **/*.h \
+    | xargs -0 -I {} bash -c 'function_name "$@"' _ {} \
+    | xargs -I {} bash -c 't="$(./run {})"; echo "[2J[H$t"'
+
+

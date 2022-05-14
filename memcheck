@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-make main && valgrind ./main $1 < input/day$(printf '%02d' $1).input
+re='^[0-9]+$'
+if ! [[ $1 =~ $re ]]
+then
+   make 2>&1 ; exit
+fi
+
+make 2>&1 && valgrind ./main $1 < input/day$(printf '%02d' $1).input
 

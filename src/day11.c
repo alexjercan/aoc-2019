@@ -145,20 +145,18 @@ static int part1(struct program *p) {
     move_robot(&robot);
   }
 
+  hashmap_free(map);
   return count;
 }
 
-static int part2(struct program *p) {
-  struct hashmap *map = hashmap_new(sizeof(struct point), 0, 0, 0, point_hash,
-                                    point_cmp, NULL, NULL);
-
-  int count = 0;
+static char *part2(struct program *p) {
+  value_t map[6][43] = {{0}};
   int code = CODE_OK;
   struct robot robot = {.x = 0, .y = 0, .direction = '^'};
-  struct point point = {.x = robot.x, .y = robot.y, .color = 1};
-  hashmap_set(map, &point);
+  map[robot.y][robot.x] = 1;
+
   while (true) {
-    value_t input = get_color(map, robot);
+    value_t input = map[robot.y][robot.x];
     queue_enqueue(p->input, &input);
 
     while (array_size(p->output) < 2 && code == CODE_OK) {
@@ -173,57 +171,26 @@ static int part2(struct program *p) {
     value_t direction = *(value_t *)array_get_ref(p->output, 1);
     array_clear(p->output);
 
-    struct point point = {.x = robot.x, .y = robot.y, .color = color};
-    if (hashmap_get(map, &point) == NULL) {
-      count++;
-    }
-    hashmap_set(map, &point);
+    map[robot.y][robot.x] = color;
 
     robot.direction = change_direction(robot.direction, direction);
     move_robot(&robot);
   }
 
-  size_t index = 0;
-  struct point **point_ptr = NULL;
-  struct array *points = array_new(count, sizeof(struct point));
-  while (hashmap_iter(map, &index, (void **)&point_ptr)) {
-    array_append(points, point_ptr);
-  }
-
-  int minimum_x = 0;
-  int maximum_x = 0;
-  int minimum_y = 0;
-  int maximum_y = 0;
-
-  for (size_t i = 0; i < array_size(points); i++) {
-    struct point point = *(struct point *)array_get_ref(points, i);
-    if (point.x < minimum_x) {
-      minimum_x = point.x;
-    }
-    if (point.x > maximum_x) {
-      maximum_x = point.x;
-    }
-    if (point.y < minimum_y) {
-      minimum_y = point.y;
-    }
-    if (point.y > maximum_y) {
-      maximum_y = point.y;
-    }
-  }
-
-  for (int y = minimum_y; y <= maximum_y; y++) {
-    for (int x = minimum_x; x <= maximum_x; x++) {
-      struct point point = {.x = x, .y = y};
-      if (hashmap_get(map, &point) != NULL) {
-        printf("#");
+  char *output = calloc(6 * 44 + 1, sizeof(char));
+  int index = 0;
+  for (int y = 0; y <= 5; y++) {
+    for (int x = 0; x <= 42; x++) {
+      if (map[y][x] == 1) {
+        output[index++] = '#';
       } else {
-        printf(".");
+        output[index++] = ' ';
       }
     }
-    printf("\n");
+    output[index++] = '\n';
   }
 
-  return 0;
+  return output;
 }
 
 void day11_solve(char *input, char *output) {
@@ -233,5 +200,10 @@ void day11_solve(char *input, char *output) {
   struct program *clone = program_new();
   program_copy(clone, p);
 
-  sprintf(output, "Day11\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
+  char *part2_output = part2(clone);
+  sprintf(output, "Day11\nPart1: %d\nPart2: \n%s", part1(p), part2_output);
+
+  free(part2_output);
+  program_destroy(clone);
+  program_destroy(p);
 }
