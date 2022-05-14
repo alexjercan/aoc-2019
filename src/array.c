@@ -99,6 +99,8 @@ int array_pop(struct array *array, void *data) {
   return 0;
 }
 
+void array_clear(struct array *array) { array->size = 0; }
+
 void array_destroy(struct array *array) {
   free(array->data);
   free(array);

@@ -15,6 +15,7 @@ void *array_get_ref(struct array *array, size_t index);
 int array_size(struct array *array);
 int array_contains(struct array *array, void *data);
 int array_pop(struct array *array, void *data);
+void array_clear(struct array *array);
 void array_destroy(struct array *array);
 
 #endif // ARRAY_H
