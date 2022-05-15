@@ -4,10 +4,13 @@
 #include "../include/intcode.h"
 #include "../include/queue.h"
 #include "../include/vector.h"
+#include "../include/hash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define CAPACITY 2048
 
 static void parse_input(char *input, struct program *p) {
   char *line = strtok(input, ",");
@@ -28,7 +31,7 @@ struct point {
   value_t color;
 };
 
-static int point_cmp(const void *a, const void *b, void *udata) {
+static int point_cmp(const void *a, const void *b) {
   const struct point *point_a = a;
   const struct point *point_b = b;
 
@@ -40,13 +43,13 @@ static int point_cmp(const void *a, const void *b, void *udata) {
   return strcmp(key_a, key_b);
 }
 
-static uint64_t point_hash(const void *item, uint64_t seed0, uint64_t seed1) {
+static size_t point_hash(const void *item) {
   const struct point *point = item;
 
   char key[128] = {0};
   sprintf(key, "%d,%d", point->x, point->y);
 
-  return hashmap_sip(key, strlen(key), seed0, seed1);
+  return hash_sip(key, strlen(key), 0, 1);
 }
 
 struct robot {
@@ -57,7 +60,7 @@ struct robot {
 
 static value_t get_color(struct hashmap *map, struct robot robot) {
   struct point point = {.x = robot.x, .y = robot.y};
-  struct point *found = hashmap_get(map, &point);
+  struct point *found = hashmap_get_ref(map, &point);
   if (found) {
     return found->color;
   }
@@ -114,12 +117,12 @@ static void move_robot(struct robot *robot) {
 }
 
 static int part1(struct program *p) {
-  struct hashmap *map = hashmap_new(sizeof(struct point), 0, 0, 0, point_hash,
-                                    point_cmp, NULL, NULL);
+  struct hashmap *map = hashmap_new(CAPACITY, sizeof(struct point), point_hash,
+                                    point_cmp);
   int count = 0;
   int code = CODE_OK;
   struct robot robot = {.x = 0, .y = 0, .direction = '^'};
-  while (true) {
+  while (1) {
     value_t input = get_color(map, robot);
     queue_enqueue(p->input, &input);
 
@@ -136,7 +139,7 @@ static int part1(struct program *p) {
     array_clear(p->output);
 
     struct point point = {.x = robot.x, .y = robot.y, .color = color};
-    if (hashmap_get(map, &point) == NULL) {
+    if (hashmap_get_ref(map, &point) == NULL) {
       count++;
     }
     hashmap_set(map, &point);
@@ -145,7 +148,7 @@ static int part1(struct program *p) {
     move_robot(&robot);
   }
 
-  hashmap_free(map);
+  hashmap_destroy(map);
   return count;
 }
 
@@ -155,7 +158,7 @@ static char *part2(struct program *p) {
   struct robot robot = {.x = 0, .y = 0, .direction = '^'};
   map[robot.y][robot.x] = 1;
 
-  while (true) {
+  while (1) {
     value_t input = map[robot.y][robot.x];
     queue_enqueue(p->input, &input);
 

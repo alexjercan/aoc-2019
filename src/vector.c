@@ -22,6 +22,10 @@ struct vector *vector_new(size_t capacity, size_t element_size) {
 }
 
 void vector_copy(struct vector *dst, struct vector *src) {
+  if (dst->capacity < src->capacity) {
+    dst->data = realloc(dst->data, src->capacity);
+  }
+
   memcpy(dst->data, src->data, src->capacity * src->element_size);
 
   dst->capacity = src->capacity;

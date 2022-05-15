@@ -72,6 +72,18 @@ void *array_get_ref(struct array *array, size_t index) {
   return array->data + index * array->element_size;
 }
 
+void array_remove(struct array *array, size_t index) {
+  if (index >= array->size) {
+    return;
+  }
+
+  memmove(array->data + index * array->element_size,
+          array->data + (index + 1) * array->element_size,
+          (array->size - index - 1) * array->element_size);
+
+  array->size--;
+}
+
 int array_size(struct array *array) { return array->size; }
 
 int array_contains(struct array *array, void *data) {
