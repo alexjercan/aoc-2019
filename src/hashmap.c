@@ -114,6 +114,19 @@ void hashmap_remove(struct hashmap *map, void *kv) {
   }
 }
 
+int hashmap_to_array(struct hashmap *map, struct array *array) {
+  for (size_t i = 0; i < map->capacity; i++) {
+    struct array *bucket = *(struct array **)vector_get_ref(map->buckets, i);
+
+    for (size_t j = 0; j < array_size(bucket); j++) {
+      void *element = array_get_ref(bucket, j);
+      array_append(array, &element);
+    }
+  }
+
+  return 0;
+}
+
 void hashmap_destroy(struct hashmap *map) {
   for (size_t i = 0; i < map->capacity; i++) {
     struct array *bucket = *(struct array **)vector_get_ref(map->buckets, i);

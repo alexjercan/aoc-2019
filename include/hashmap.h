@@ -1,6 +1,8 @@
 #ifndef HASHMAP_C
 #define HASHMAP_C
 
+#include "array.h"
+
 #include <stdlib.h>
 
 struct hashmap;
@@ -14,6 +16,7 @@ int hashmap_set(struct hashmap *map, void *kv);
 int hashmap_get(struct hashmap *map, void *kv);
 void *hashmap_get_ref(struct hashmap *map, void *kv);
 void hashmap_remove(struct hashmap *map, void *kv);
+int hashmap_to_array(struct hashmap *map, struct array *array);
 
 void hashmap_destroy(struct hashmap *map);
 

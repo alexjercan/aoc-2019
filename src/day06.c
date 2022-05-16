@@ -183,6 +183,7 @@ void day06_solve(char *input, char *output) {
   struct hashmap *map = hashmap_new(CAPACITY, sizeof(struct graph_node),
                                     graph_node_hash, graph_node_cmp);
   parse_input(input, map);
+
   struct hashmap *undirected_map = hashmap_new(
       CAPACITY, sizeof(struct graph_node), graph_node_hash, graph_node_cmp);
   parse_input_2(input_2, undirected_map);
@@ -190,8 +191,25 @@ void day06_solve(char *input, char *output) {
   sprintf(output, "Day06\nPart1: %d\nPart2: %d\n", part1(map),
           part2(undirected_map));
 
+  struct array *map_array = array_new(1024, sizeof(struct graph_node));
+  hashmap_to_array(map, map_array);
+  for (int i = 0; i < array_size(map_array); i++) {
+    struct graph_node *node =
+        *(struct graph_node **)array_get_ref(map_array, i);
+    array_destroy(node->neighbors);
+  }
+  array_clear(map_array);
+
+  hashmap_to_array(undirected_map, map_array);
+  for (int i = 0; i < array_size(map_array); i++) {
+    struct graph_node *node =
+        *(struct graph_node **)array_get_ref(map_array, i);
+    array_destroy(node->neighbors);
+  }
+
   hashmap_destroy(map);
   hashmap_destroy(undirected_map);
+  array_destroy(map_array);
 
   free(input_2);
 }
