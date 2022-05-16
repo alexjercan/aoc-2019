@@ -5,6 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+static long long int gcd(long long int a, long long int b) {
+  if (a == 0) {
+    return b;
+  }
+  return gcd(b % a, a);
+}
+
+static long long int lcm(long long int a, long long int b) {
+  return a * b / gcd(a, b);
+}
+
 struct planet {
   int x;
   int y;
@@ -95,50 +106,55 @@ static int part1(struct array *array) {
   return energy;
 }
 
-static int planet_eq(struct planet p1, struct planet p2) {
-  return p1.x == p2.x && p1.y == p2.y && p1.z == p2.z;
-}
-
-static int part2(struct array *array) {
-    return 0;
-
-  struct array *previous_states = array_new(1024, sizeof(struct array *));
-  array_append(previous_states, &array);
+static long long int part2(struct array *array) {
+  struct array *prev_state =
+      array_new(array_size(array), sizeof(struct planet));
+  array_copy(prev_state, array);
+  int found_x = -1, found_y = -1, found_z = -1;
 
   int index = 0;
-  while (1) {
+  while (found_x == -1 || found_y == -1 || found_z == -1) {
     struct array *current_state =
-        array_new(array_size(array), sizeof(struct planet));
-    array_copy(current_state, array);
+        array_new(array_size(prev_state), sizeof(struct planet));
+    array_copy(current_state, prev_state);
 
     step_simulate(current_state);
 
-    for (int i = 0; i < array_size(previous_states); i++) {
-      struct array *previous_state =
-          *(struct array **)array_get_ref(previous_states, i);
+    int x_eq = 1, y_eq = 1, z_eq = 1;
+    for (int j = 0; j < array_size(current_state); j++) {
+      struct planet p1 = *(struct planet *)array_get_ref(array, j);
+      struct planet p2 = *(struct planet *)array_get_ref(current_state, j);
 
-      int eq = 1;
-      for (int j = 0; j < array_size(previous_state); j++) {
-        struct planet p1 = *(struct planet *)array_get_ref(previous_state, j);
-        struct planet p2 = *(struct planet *)array_get_ref(current_state, j);
-
-        if (!planet_eq(p1, p2)) {
-            eq = 0;
-            break;
-        }
+      if (p1.x != p2.x) {
+        x_eq = 0;
       }
-      if (eq) {
-          return index - i;
+      if (p1.y != p2.y) {
+        y_eq = 0;
+      }
+      if (p1.z != p2.z) {
+        z_eq = 0;
       }
     }
 
-    array_append(previous_states, &current_state);
-    array = current_state;
+    if (x_eq && found_x == -1) {
+      found_x = index + 2;
+    }
+    if (y_eq && found_y == -1) {
+      found_y = index + 2;
+    }
+    if (z_eq && found_z == -1) {
+      found_z = index + 2;
+    }
+
+    array_destroy(prev_state);
+    prev_state = current_state;
 
     index++;
   }
 
-  return 0;
+  array_destroy(prev_state);
+
+  return lcm(found_x, lcm(found_y, found_z));
 }
 
 void day12_solve(char *input, char *output) {
@@ -148,5 +164,9 @@ void day12_solve(char *input, char *output) {
   struct array *clone = array_new(array_size(array), sizeof(struct planet));
   array_copy(clone, array);
 
-  sprintf(output, "Day12\nPart1: %d\nPart2: %d\n", part1(array), part2(clone));
+  sprintf(output, "Day12\nPart1: %d\nPart2: %lld\n", part1(array),
+          part2(clone));
+
+  array_destroy(array);
+  array_destroy(clone);
 }

@@ -1,8 +1,8 @@
 #include "../include/day06.h"
 #include "../include/array.h"
+#include "../include/hash.h"
 #include "../include/hashmap.h"
 #include "../include/queue.h"
-#include "../include/hash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +21,7 @@ static int graph_node_cmp(const void *a, const void *b) {
   return strcmp(node_a->name, node_b->name);
 }
 
-static size_t graph_node_hash(const void *item){
+static size_t graph_node_hash(const void *item) {
   const struct graph_node *node = item;
   return hash_sip(node->name, strlen(node->name), 0, 0);
 }
@@ -32,9 +32,12 @@ static void parse_input(char *input, struct hashmap *map) {
   while (src != NULL) {
     char *dst = strtok(NULL, "\n");
 
-    struct graph_node *node = hashmap_get_ref(map, &(struct graph_node){.name = src});
+    struct graph_node *node =
+        hashmap_get_ref(map, &(struct graph_node){.name = src});
     if (node == NULL) {
-      hashmap_set(map, &(struct graph_node){.name = src, .neighbors = array_new(1024, sizeof(char **))});
+      hashmap_set(
+          map, &(struct graph_node){
+                   .name = src, .neighbors = array_new(1024, sizeof(char **))});
       node = hashmap_get_ref(map, &(struct graph_node){.name = src});
     }
     array_append(node->neighbors, &dst);
@@ -49,7 +52,8 @@ static void parse_input_2(char *input, struct hashmap *map) {
   while (src != NULL) {
     char *dst = strtok(NULL, "\n");
 
-    struct graph_node *node = hashmap_get_ref(map, &(struct graph_node){.name = src});
+    struct graph_node *node =
+        hashmap_get_ref(map, &(struct graph_node){.name = src});
     if (node == NULL) {
       hashmap_set(
           map, &(struct graph_node){
@@ -125,7 +129,8 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
   struct queue *queue = queue_new(sizeof(char *));
   queue_enqueue(queue, &src);
 
-  struct hashmap *visited = hashmap_new(CAPACITY, sizeof(struct visited_node), visited_node_hash, visited_node_cmp);
+  struct hashmap *visited = hashmap_new(CAPACITY, sizeof(struct visited_node),
+                                        visited_node_hash, visited_node_cmp);
 
   hashmap_set(visited, &(struct visited_node){.name = src, .parent = NULL});
 
@@ -137,7 +142,8 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
       break;
     }
 
-    struct graph_node *node = hashmap_get_ref(map, &(struct graph_node){.name = element});
+    struct graph_node *node =
+        hashmap_get_ref(map, &(struct graph_node){.name = element});
     if (node != NULL) {
       for (int i = 0; i < array_size(node->neighbors); i++) {
         char *neighbor = NULL;
@@ -158,7 +164,8 @@ static int bfs_path(struct hashmap *map, char *src, char *dst) {
   struct visited_node *iter =
       hashmap_get_ref(visited, &(struct visited_node){.name = dst});
   while (iter != NULL && iter->parent != NULL) {
-    iter = hashmap_get_ref(visited, &(struct visited_node){.name = iter->parent});
+    iter =
+        hashmap_get_ref(visited, &(struct visited_node){.name = iter->parent});
     path_length++;
   }
 
@@ -173,9 +180,11 @@ static int part2(struct hashmap *map) { return bfs_path(map, "YOU", "SAN"); }
 
 void day06_solve(char *input, char *output) {
   char *input_2 = strdup(input);
-  struct hashmap *map = hashmap_new(CAPACITY, sizeof(struct graph_node), graph_node_hash, graph_node_cmp);
+  struct hashmap *map = hashmap_new(CAPACITY, sizeof(struct graph_node),
+                                    graph_node_hash, graph_node_cmp);
   parse_input(input, map);
-  struct hashmap *undirected_map = hashmap_new(CAPACITY, sizeof(struct graph_node), graph_node_hash, graph_node_cmp);
+  struct hashmap *undirected_map = hashmap_new(
+      CAPACITY, sizeof(struct graph_node), graph_node_hash, graph_node_cmp);
   parse_input_2(input_2, undirected_map);
 
   sprintf(output, "Day06\nPart1: %d\nPart2: %d\n", part1(map),

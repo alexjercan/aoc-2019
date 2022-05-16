@@ -1,10 +1,10 @@
 #include "../include/day11.h"
 #include "../include/array.h"
+#include "../include/hash.h"
 #include "../include/hashmap.h"
 #include "../include/intcode.h"
 #include "../include/queue.h"
 #include "../include/vector.h"
-#include "../include/hash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,8 +117,8 @@ static void move_robot(struct robot *robot) {
 }
 
 static int part1(struct program *p) {
-  struct hashmap *map = hashmap_new(CAPACITY, sizeof(struct point), point_hash,
-                                    point_cmp);
+  struct hashmap *map =
+      hashmap_new(CAPACITY, sizeof(struct point), point_hash, point_cmp);
   int count = 0;
   int code = CODE_OK;
   struct robot robot = {.x = 0, .y = 0, .direction = '^'};
