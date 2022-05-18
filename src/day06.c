@@ -18,7 +18,7 @@ struct graph_node {
 static int graph_node_cmp(const void *a, const void *b) {
   const struct graph_node *node_a = a;
   const struct graph_node *node_b = b;
-  return strcmp(node_a->name, node_b->name);
+  return strcmp(node_a->name, node_b->name) == 0;
 }
 
 static size_t graph_node_hash(const void *item) {
@@ -117,7 +117,7 @@ struct visited_node {
 static int visited_node_cmp(const void *a, const void *b) {
   const struct visited_node *node_a = a;
   const struct visited_node *node_b = b;
-  return strcmp(node_a->name, node_b->name);
+  return strcmp(node_a->name, node_b->name) == 0;
 }
 
 static size_t visited_node_hash(const void *item) {

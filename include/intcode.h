@@ -5,6 +5,7 @@
 #define CODE_HALT 1
 #define CODE_TAPE_END 2
 #define CODE_NO_INPUT 3
+#define CODE_OUTPUT 4
 
 typedef long long int value_t;
 typedef unsigned long long int addr_t;

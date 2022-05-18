@@ -77,6 +77,12 @@ int queue_dequeue(struct queue *q, void *data) {
   return 0;
 }
 
+void *queue_dequeue_ref(struct queue *q) {
+  void *data = malloc(q->element_size);
+  queue_dequeue(q, data);
+  return data;
+}
+
 int queue_peek(struct queue *q, void *data) {
   if (q->head == NULL) {
     return -1;

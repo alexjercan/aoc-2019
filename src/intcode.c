@@ -81,7 +81,7 @@ int program_step(struct program *p) {
     value_t output = get_param(p, 1);
     array_append(p->output, &output);
     p->ip += 2;
-    return CODE_OK;
+    return CODE_OUTPUT;
   }
   case OPCODE_JUMP_IF_TRUE: {
     p->ip = (get_param(p, 1) != 0) ? get_param(p, 2) : p->ip + 3;

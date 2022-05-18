@@ -18,7 +18,7 @@ struct chemical {
 static int chemical_cmp(const void *a, const void *b) {
   const struct chemical *node_a = a;
   const struct chemical *node_b = b;
-  return strcmp(node_a->name, node_b->name);
+  return strcmp(node_a->name, node_b->name) == 0;
 }
 
 static size_t chemical_hash(const void *item) {
@@ -34,7 +34,7 @@ struct reaction {
 static int reaction_cmp(const void *a, const void *b) {
   const struct reaction *node_a = a;
   const struct reaction *node_b = b;
-  return strcmp(node_a->output.name, node_b->output.name);
+  return strcmp(node_a->output.name, node_b->output.name) == 0;
 }
 
 static size_t reaction_hash(const void *item) {
@@ -175,8 +175,8 @@ void day14_solve(char *input, char *output) {
       hashmap_new(128, sizeof(struct reaction), reaction_hash, reaction_cmp);
   parse_input(input, recipes);
 
-sprintf(output, "Day14\nPart1: %lld\nPart2: %lld\n", part1(recipes),
-        part2(recipes));
+  sprintf(output, "Day14\nPart1: %lld\nPart2: %lld\n", part1(recipes),
+          part2(recipes));
 
   struct array *recipes_array = array_new(128, sizeof(struct reaction));
   hashmap_to_array(recipes, recipes_array);

@@ -40,7 +40,7 @@ static int point_cmp(const void *a, const void *b) {
   char key_b[128] = {0};
   sprintf(key_b, "%d,%d", point_b->x, point_b->y);
 
-  return strcmp(key_a, key_b);
+  return strcmp(key_a, key_b) == 0;
 }
 
 static size_t point_hash(const void *item) {
@@ -126,7 +126,7 @@ static int part1(struct program *p) {
     value_t input = get_color(map, robot);
     queue_enqueue(p->input, &input);
 
-    while (array_size(p->output) < 2 && code == CODE_OK) {
+    while (array_size(p->output) < 2 && code != CODE_HALT) {
       code = program_step(p);
     }
 
@@ -162,7 +162,7 @@ static char *part2(struct program *p) {
     value_t input = map[robot.y][robot.x];
     queue_enqueue(p->input, &input);
 
-    while (array_size(p->output) < 2 && code == CODE_OK) {
+    while (array_size(p->output) < 2 && code != CODE_HALT) {
       code = program_step(p);
     }
 

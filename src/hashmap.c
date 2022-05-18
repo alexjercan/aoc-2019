@@ -60,7 +60,7 @@ int hashmap_set(struct hashmap *map, void *kv) {
   for (size_t i = 0; i < array_size(bucket); i++) {
     void *element = array_get_ref(bucket, i);
 
-    if (map->equals(kv, element) == 0) {
+    if (map->equals(kv, element)) {
       return array_set(bucket, i, kv);
     }
   }
@@ -76,13 +76,15 @@ int hashmap_get(struct hashmap *map, void *kv) {
   for (size_t i = 0; i < array_size(bucket); i++) {
     void *element = array_get_ref(bucket, i);
 
-    if (map->equals(kv, element) == 0) {
+    if (map->equals(kv, element)) {
       return array_get(bucket, i, kv);
     }
   }
 
   return -1;
 }
+
+#include <stdio.h>
 
 void *hashmap_get_ref(struct hashmap *map, void *kv) {
   size_t hash = map->hash(kv) % map->capacity;
@@ -92,7 +94,7 @@ void *hashmap_get_ref(struct hashmap *map, void *kv) {
   for (size_t i = 0; i < array_size(bucket); i++) {
     void *element = array_get_ref(bucket, i);
 
-    if (map->equals(kv, element) == 0) {
+    if (map->equals(kv, element)) {
       return element;
     }
   }
@@ -108,7 +110,7 @@ void hashmap_remove(struct hashmap *map, void *kv) {
   for (size_t i = 0; i < array_size(bucket); i++) {
     void *element = array_get_ref(bucket, i);
 
-    if (map->equals(kv, element) == 0) {
+    if (map->equals(kv, element)) {
       return array_remove(bucket, i);
     }
   }

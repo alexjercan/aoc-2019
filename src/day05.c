@@ -25,7 +25,7 @@ static value_t part1(struct program *p) {
   value_t input = 1;
   queue_enqueue(p->input, &input);
 
-  while (program_step(p) == 0)
+  while (program_step(p) != CODE_HALT)
     ;
 
   return *(value_t *)array_get_ref(p->output, array_size(p->output) - 1);
@@ -35,7 +35,7 @@ static value_t part2(struct program *p) {
   value_t input = 5;
   queue_enqueue(p->input, &input);
 
-  while (program_step(p) == 0)
+  while (program_step(p) != CODE_HALT)
     ;
 
   return *(value_t *)array_get_ref(p->output, array_size(p->output) - 1);

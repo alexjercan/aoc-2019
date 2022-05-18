@@ -28,7 +28,7 @@ static void parse_input(char *input, struct program *p) {
 }
 
 static int part1(struct program *p) {
-  while (program_step(p) == 0)
+  while (program_step(p) != CODE_HALT)
     ;
 
   int count = 0;
