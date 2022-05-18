@@ -166,6 +166,12 @@ static int bfs(struct array *points, struct point start, struct point goal) {
     }
   }
 
+  while (!queue_empty(q)) {
+    queue_dequeue(q, &p);
+  }
+  queue_destroy(q);
+  hashmap_destroy(visited);
+
   int steps = 0;
   p = goal;
   while (!point_equals(&p, &start)) {
@@ -174,6 +180,8 @@ static int bfs(struct array *points, struct point start, struct point goal) {
             ->value;
     steps++;
   }
+
+  hashmap_destroy(parent);
 
   return steps;
 }
@@ -222,6 +230,12 @@ static int flood(struct array *points, struct point start) {
     }
   }
 
+  while (!queue_empty(q)) {
+    queue_dequeue(q, &p);
+  }
+  queue_destroy(q);
+  hashmap_destroy(visited);
+
   return max_value;
 }
 
@@ -250,4 +264,5 @@ void day15_solve(char *input, char *output) {
   sprintf(output, "Day15\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
 
   program_destroy(p);
+  program_destroy(clone);
 }
