@@ -112,7 +112,7 @@ static value_t run_program(struct program *p, value_t dir) {
 }
 
 static void build_map(struct program *program, struct point droid,
-                      struct array *points, struct point *goal) {
+                      struct hashmap *points, struct point *goal) {
   for (int i = 0; i < 4; i++) {
     value_t dir = directions[i];
     value_t status = run_program(program, dir);
@@ -126,8 +126,8 @@ static void build_map(struct program *program, struct point droid,
     }
 
     struct point p = move_direction(dir, droid);
-    if (!array_contains(points, &p)) {
-      array_append(points, &p);
+    if (hashmap_get_ref(points, &p) == NULL) {
+      hashmap_set(points, &p);
       build_map(program, p, points, goal);
     }
 
@@ -136,7 +136,7 @@ static void build_map(struct program *program, struct point droid,
   }
 }
 
-static int bfs(struct array *points, struct point start, struct point goal) {
+static int bfs(struct hashmap *points, struct point start, struct point goal) {
   struct queue *q = queue_new(sizeof(struct point));
   queue_enqueue(q, &start);
 
@@ -158,7 +158,7 @@ static int bfs(struct array *points, struct point start, struct point goal) {
     for (int i = 0; i < 4; i++) {
       struct point next = move_direction(directions[i], p);
       if (hashmap_get_ref(visited, &next) == NULL &&
-          array_contains(points, &next)) {
+          hashmap_get_ref(points, &next) != NULL) {
         hashmap_set(visited, &next);
         queue_enqueue(q, &next);
         hashmap_set(parent, &(struct point_kv){.key = next, .value = p});
@@ -186,22 +186,11 @@ static int bfs(struct array *points, struct point start, struct point goal) {
   return steps;
 }
 
-static int part1(struct program *p) {
-  struct array *points = array_new(1024, sizeof(struct point));
-  struct point goal = {0, 0};
-  struct point current = {0, 0};
-  array_append(points, &current);
-
-  build_map(p, current, points, &goal);
-
-  int result = bfs(points, current, goal);
-
-  array_destroy(points);
-
-  return result;
+static int part1(struct hashmap *points, struct point goal) {
+  return bfs(points, (struct point){0, 0}, goal);
 }
 
-static int flood(struct array *points, struct point start) {
+static int flood(struct hashmap *points, struct point start) {
   struct queue *q = queue_new(sizeof(struct point));
   queue_enqueue(q, &start);
 
@@ -217,7 +206,7 @@ static int flood(struct array *points, struct point start) {
     for (int i = 0; i < 4; i++) {
       struct point next = move_direction(directions[i], p);
       if (hashmap_get_ref(visited, &(struct flood_kv){.key = next}) == NULL &&
-          array_contains(points, &next)) {
+          hashmap_get_ref(points, &next) != NULL) {
         struct flood_kv kv = *(struct flood_kv *)hashmap_get_ref(
             visited, &(struct flood_kv){.key = p});
         hashmap_set(visited,
@@ -239,30 +228,25 @@ static int flood(struct array *points, struct point start) {
   return max_value;
 }
 
-static int part2(struct program *p) {
-  struct array *points = array_new(1024, sizeof(struct point));
-  struct point goal = {0, 0};
-  struct point current = {0, 0};
-  array_append(points, &current);
-
-  build_map(p, current, points, &goal);
-
-  int result = flood(points, goal);
-
-  array_destroy(points);
-
-  return result;
+static int part2(struct hashmap *points, struct point goal) {
+  return flood(points, goal);
 }
 
 void day15_solve(char *input, char *output) {
   struct program *p = program_new();
   parse_input(input, p);
 
-  struct program *clone = program_new();
-  program_copy(clone, p);
+  struct hashmap *points =
+      hashmap_new(1024, sizeof(struct point), point_hash, point_equals);
+  struct point goal = {0, 0};
+  struct point current = {0, 0};
+  hashmap_set(points, &current);
 
-  sprintf(output, "Day15\nPart1: %d\nPart2: %d\n", part1(p), part2(clone));
+  build_map(p, current, points, &goal);
 
+  sprintf(output, "Day15\nPart1: %d\nPart2: %d\n", part1(points, goal),
+          part2(points, goal));
+
+  hashmap_destroy(points);
   program_destroy(p);
-  program_destroy(clone);
 }
