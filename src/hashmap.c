@@ -84,8 +84,6 @@ int hashmap_get(struct hashmap *map, void *kv) {
   return -1;
 }
 
-#include <stdio.h>
-
 void *hashmap_get_ref(struct hashmap *map, void *kv) {
   size_t hash = map->hash(kv) % map->capacity;
 
