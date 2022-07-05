@@ -28,7 +28,7 @@
 #include "./include/day24.h"
 #include "./include/day25.h"
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 
 int read_input(char **content) {
   int size = 0;
